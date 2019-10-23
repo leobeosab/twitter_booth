@@ -1,6 +1,8 @@
 from ecapture import ecapture as ec
-from escpos.printer import Usb
+from escpos.printer import Usb, Dummy
+from escpos.image import EscposImage
 
+import subprocess
 import twitter
 import os, time
 
@@ -18,6 +20,7 @@ api = twitter.Api(consumer_key=CONSUMER_KEY,
 
 class Photobooth:
     api = None
+    printer = None
     lastMention = None
 
     def __init__(self, api):
@@ -39,8 +42,21 @@ class Photobooth:
         return False
 
     def SnapAndPrint(self):
-        ec.capture(0, False, "tmp.jpg")
+        subprocess.run(["/usr/bin/fswebcam", "tmp.jpg"]) 
+        time.sleep(2)
+        dummy = Dummy()
+        
+        dummy.text("BravoLT - GRPS - 2019\n")
+        dummy.image("tmp.jpg")
+
+        self.printer = Usb(0x0416, 0x5011, 0, 0x81, 0x01)
+        self.printer.set()
+        self.printer._raw(dummy.output)
+        self.printer.set()
+        self.printer.close() 
+
 
 booth = Photobooth(api)
+booth.SnapAndPrint()
 booth.SnapAndPrint()
 #booth.StartBooth()
