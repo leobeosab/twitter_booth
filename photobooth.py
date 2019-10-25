@@ -11,6 +11,8 @@ CONSUMER_SECRET=os.environ['TAPI_CONSUMER_SECRET']
 ACCESS_TOKEN_KEY=os.environ['TAPI_ACCESS_TOKEN_KEY']
 ACCESS_TOKEN_SECRET=os.environ['TAPI_ACCESS_TOKEN_SECRET']
 
+PIC_COMMAND="/usr/bin/fswebcam tmp.jpg --scale 640x480 --rotate 90 --save out.jpg"
+
 api = twitter.Api(consumer_key=CONSUMER_KEY,
                   consumer_secret=CONSUMER_SECRET,
                   access_token_key=ACCESS_TOKEN_KEY,
@@ -25,6 +27,7 @@ class Photobooth:
 
     def __init__(self, api):
         self.api = api
+        self.printer = Usb(0x0416, 0x5011, 0, 0x81, 0x01)
         self.lastMention = self.api.GetMentions()[0].AsDict()
 
     def StartBooth(self):
@@ -42,21 +45,14 @@ class Photobooth:
         return False
 
     def SnapAndPrint(self):
-        subprocess.run(["/usr/bin/fswebcam", "tmp.jpg"]) 
-        time.sleep(2)
+        subprocess.run(PIC_COMMAND.split(" ")) 
         dummy = Dummy()
         
-        dummy.text("BravoLT - GRPS - 2019\n")
-        dummy.image("tmp.jpg")
+        dummy.text("\n\n\nBravoLT - GRPS - 2019\n\n\n")
+        dummy.image("out.jpg")
+        dummy.text("\n\n\nBravoLT - GRPS - 2019")
 
-        self.printer = Usb(0x0416, 0x5011, 0, 0x81, 0x01)
-        self.printer.set()
         self.printer._raw(dummy.output)
-        self.printer.set()
-        self.printer.close() 
-
 
 booth = Photobooth(api)
-booth.SnapAndPrint()
-booth.SnapAndPrint()
-#booth.StartBooth()
+booth.StartBooth()
