@@ -1,4 +1,3 @@
-from ecapture import ecapture as ec
 from escpos.printer import Usb, Dummy
 from escpos.image import EscposImage
 
